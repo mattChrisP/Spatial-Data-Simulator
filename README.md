@@ -1,0 +1,1 @@
+To run the simulator, first you need to run the server.py. Then go to FE directory and run the fe_server.py. Now open localhost:8000 on your browser and you are good to go.

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+    <div style="display: flex;">
+        <canvas id="myCanvas" width="1000" height="900" style="border:1px solid #d3d3d3;">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+
+        <div style="margin-left: 20px;">
+            <input type="radio" id="form1Radio" name="formSelector" value="form1" checked>
+            <label for="form1Radio">K-th Nearest</label>
+            <input type="radio" id="form2Radio" name="formSelector" value="form2">
+            <label for="form2Radio">K-th Rectangle</label>
+
+            <form id="myForm1" style="display: block;">
+                <label for="input1">K:</label><br>
+                <input type="text" id="f1_i1" name="input1"><br>
+                <label for="input2">x-value:</label><br>
+                <input type="text" id="f1_i2" name="input2"><br>
+                <label for="input3">y-value:</label><br>
+                <input type="text" id="f1_i3" name="input3"><br>
+                <input type="submit" value="Get Nearest Points">
+            </form>
+
+            <form id="myForm2" style="display: none;">
+                <label for="input1">K:</label><br>
+                <input type="text" id="f2_i1" name="input1"><br>
+                <label for="input2">x1-value:</label><br>
+                <input type="text" id="f2_i2" name="input2"><br>
+                <label for="input3">y1-value:</label><br>
+                <input type="text" id="f2_i3" name="input3"><br>
+                <label for="input4">x2-value:</label><br>
+                <input type="text" id="f2_i4" name="input4"><br>
+                <label for="input4">y2-value:</label><br>
+                <input type="text" id="f2_i5" name="input4"><br>
+                <input type="submit" value="Get Rect Points">
+            </form>
+        </div>
+    </div>
+
+    <script>
+
+        var points;
+        var minX = Number.MAX_SAFE_INTEGER;
+        var maxX = Number.MIN_SAFE_INTEGER;
+        var minY = Number.MAX_SAFE_INTEGER;
+        var maxY = Number.MIN_SAFE_INTEGER;
+
+        var canvas = document.getElementById('myCanvas');
+        var ctx = canvas.getContext('2d');
+
+        document.getElementById('form1Radio').addEventListener('change', function() {
+            document.getElementById('myForm1').style.display = 'block';
+            document.getElementById('myForm2').style.display = 'none';
+            
+        });
+
+        document.getElementById('form2Radio').addEventListener('change', function() {
+            document.getElementById('myForm1').style.display = 'none';
+            document.getElementById('myForm2').style.display = 'block';
+        });
+
+        document.getElementById('myForm1').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+
+            var input1 = document.getElementById('f1_i1').value;
+            var input2 = document.getElementById('f1_i2').value;
+            var input3 = document.getElementById('f1_i3').value;
+
+            // Check if all fields are filled and are numbers
+            if (!input1 || !input2 || !input3 ||  
+                isNaN(input1) || isNaN(input2) || isNaN(input3)) {
+                alert('All fields must be filled and must be numbers');
+                return;
+            }
+            fetch('http://127.0.0.1:5000/api/nearest/'+input1.toString()+'/'+input2.toString()+'/'+input3.toString())
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                // Store the points to be highlighted
+                console.log(data);
+                highlightedPoints = data;
+                
+                for (var i=0; i<highlightedPoints.length; i++) {
+
+                    var normalizedPoint = normalize(minX, maxX, minY, maxY, highlightedPoints[i]);
+                    highlightedPoints[i][1] = normalizedPoint.x;
+                    highlightedPoints[i][2] = normalizedPoint.y;
+                }
+                // Redraw the points
+                drawAllPoints();
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+            });
+        });
+
+
+        document.getElementById('myForm2').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+
+            var input1 = parseInt(document.getElementById('f2_i1').value);
+            var input2 = parseFloat(document.getElementById('f2_i2').value);
+            var input3 = parseFloat(document.getElementById('f2_i3').value);
+            var input4 = parseFloat(document.getElementById('f2_i4').value);
+            var input5 = parseFloat(document.getElementById('f2_i5').value);
+
+            var t1 = normalize(minX, maxX, minY, maxY, ["",input2, input3,""]);
+            var t2 = normalize(minX, maxX, minY, maxY, ["", input4, input5, ""]);
+
+
+
+            ctx.strokeRect(t1.x, t2.y, t2.x - t1.x, t1.y - t2.y);
+
+            // Check if all fields are filled and are numbers
+            if (!input1 || !input2 || !input3 || !input4 || !input5 ||
+                isNaN(input1) || isNaN(input2) || isNaN(input3) || isNaN(input4) || isNaN(input5)) {
+                alert('All fields must be filled and must be numbers');
+                return;
+            }
+            fetch('http://127.0.0.1:5000/api/rect/'+input1.toString()+'/'+input2.toString()+'/'+input3.toString()+'/'+input4.toString()+'/'+input5.toString())
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                // Store the points to be highlighted
+                console.log(data);
+                highlightedPoints = data;
+                
+                for (var i=0; i<highlightedPoints.length; i++) {
+
+                    var normalizedPoint = normalize(minX, maxX, minY, maxY, highlightedPoints[i]);
+                    highlightedPoints[i][1] = normalizedPoint.x;
+                    highlightedPoints[i][2] = normalizedPoint.y;
+                }
+                // Redraw the points
+                drawAllPoints();
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+            });
+        });
+
+
+        
+
+        function drawPoint(x, y, color='black') {
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI*2, true);
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        var highlightedPoints = [];
+
+        // Function to draw points
+        function drawPoints(x,y) {
+            // ...
+            points.forEach(function(point) {
+
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, 2 * Math.PI);
+
+                // Check if the point should be highlighted
+                if (highlightedPoints.some(function(highlightedPoint) {
+                    return highlightedPoint[1] === x && highlightedPoint[2] === y;
+                })) {
+                    ctx.fillStyle = 'red'; // or any other color
+                } else {
+                    ctx.fillStyle = 'black';
+                }
+
+                ctx.fill();
+            });
+        }
+
+        var padding = 50; // Space around the grid, to allow room for labels
+
+        function drawAllPoints(){
+            for (var i=0; i<points.length; i++) {
+                var normalizedPoint = normalize(minX, maxX, minY, maxY, points[i]);
+                drawPoints(normalizedPoint.x, normalizedPoint.y);
+            }
+        }
+
+        function drawAxes(minX, maxX, minY, maxY) {
+
+            minX = Math.round(minX);
+            maxX = Math.round(maxX);
+            minY = Math.round(minY);
+            maxY = Math.round(maxY);
+
+            // Draw X and Y axes
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            // Draw labels on X and Y axes
+            ctx.fillText(`(${minX}, ${minY})`, padding, canvas.height - padding + 20);
+            ctx.fillText(`(${maxX}, ${minY})`, canvas.width - padding, canvas.height - padding + 20);
+            ctx.fillText(`(${minX}, ${maxY})`, padding - 30, padding);
+
+        }
+
+        // Function to normalize the points
+        function normalize(minX,maxX,minY,maxY,p) {
+            var normalizedX = ((p[1] - minX) / (maxX - minX)) * canvas.width;
+            var normalizedY = ((p[2] - minY) / (maxY - minY)) * canvas.height;
+            return {x: normalizedX, y: normalizedY};
+        }
+
+        fetch('http://127.0.0.1:5000/api/points')
+            .then(response => response.json())
+            .then(data => {
+                points = data;
+
+                minX = Number.MAX_SAFE_INTEGER;
+                maxX = Number.MIN_SAFE_INTEGER;
+                minY = Number.MAX_SAFE_INTEGER;
+                maxY = Number.MIN_SAFE_INTEGER;
+                
+
+                for (var i=0; i<points.length; i++) {
+                    p = points[i]
+
+                    minX = Math.min(p[1], minX);
+                    maxX = Math.max(p[1], maxX);
+                    minY = Math.min(p[2], minY);
+                    maxY = Math.max(p[2], maxY);
+                }
+
+
+                drawAxes(minX, maxX, minY, maxY);
+                // for (var i=0; i<points.length; i++) {
+
+                //     var normalizedPoint = normalize(minX, maxX, minY, maxY, points[i]);
+                //     drawPoint(normalizedPoint.x, normalizedPoint.y, 'red');
+                // }
+                drawAllPoints();
+            })
+            .catch(error => console.error('Error:', error));
+    </script>
+
+</body>
+</html>
+
