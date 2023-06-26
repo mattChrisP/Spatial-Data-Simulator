@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='my_package',
+    name='glocator',
     version='0.1',
     description='Basic release',
     url='https://github.com/mattChrisP/Spatial-Data-Simulator',

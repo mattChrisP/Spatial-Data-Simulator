@@ -38,9 +38,20 @@ Make sure your system has **postgresql** and **postgis** extension installed
 
 ## Running
 
+Connect to certain psql db
+```
+psql -h localhost -U your_username -d your_database
+```
+
+
 Starting the DB server
 ```
 sudo service postgresql start
+```
+
+Stopping the DB server
+```
+sudo service postgresql stop
 ```
 
 Enter the PostgreSQL interface as the root user
