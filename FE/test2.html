@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" 
+            integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+            crossorigin=""/>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+            crossorigin="">
+    </script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <button id="show-fav">Show Favourite Locations</button>
+    <div id="permission-modal" class="modal">
+        <div class="modal-content">
+            <h2>We need your permission</h2>
+            <p>To provide the best experience, we need access to your location.</p>
+            <button id="grant-permission">Allow Location Access</button>
+        </div>
+    </div>
+    <div id="content">
+        <div id="mapid" style="height: 400px; width: 600px;"></div>
+    </div>
+    
+
+
+    <script>
+        var userMarker;
+
+        var modal = document.getElementById("permission-modal");
+        var btn = document.getElementById("grant-permission");
+        var x = document.getElementById("demo");
+        var showFavButton = document.getElementById("show-fav");
+        var body = document.body;
+
+        showFavButton.onclick = function() {
+            modal.style.display = "block";
+            body.classList.add('modal-open');
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else { 
+                x.innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            x.innerHTML = "Latitude: " + position.coords.latitude + 
+            "<br>Longitude: " + position.coords.longitude;
+        }
+
+        var mymap = L.map('mapid').setView([51.505, -0.09], 13);
+    
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+        }).addTo(mymap);
+
+        btn.onclick = function() {
+            modal.style.display = "none";
+            body.classList.remove('modal-open');
+            getLocations();
+        }
+
+        function getLocations() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else { 
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function showPosition(position) {
+            if (userMarker) {
+                mymap.removeLayer(userMarker);
+            }
+
+            userMarker = L.marker([position.coords.latitude, position.coords.longitude]).addTo(mymap);
+
+            mymap.setView([position.coords.latitude, position.coords.longitude], 13);
+            // alert("Latitude: " + position.coords.latitude + 
+            // "\nLongitude: " + position.coords.longitude);
+        }
+    </script>
+</body>
+</html>

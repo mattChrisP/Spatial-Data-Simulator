@@ -20,17 +20,18 @@ class SpatialData:
             print(f"Error: Could not get curser to the Database\n{e}")
         
         try:
-            # # Enable PostGIS (includes raster)
-            # self.cur.execute("CREATE EXTENSION postgis;")
+            # Enable PostGIS (includes raster)
+            self.cur.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
 
-            # # Enable Topology
-            # self.cur.execute("CREATE EXTENSION postgis_topology;")
+            # Enable Topology
+            self.cur.execute("CREATE EXTENSION IF NOT EXISTS postgis_topology;")
 
             # Create a new table with a spatial column
             self.cur.execute("""
-                CREATE TABLE locations (
+                CREATE TABLE IF NOT EXISTS locations (
                     id SERIAL PRIMARY KEY,
-                    name VARCHAR(255),
+                    name VARCHAR(255) UNIQUE,
+                    url VARCHAR(500) NOT NULL,
                     importance double precision,
                     tags text[], 
                     geom GEOMETRY(Point, 4326)
@@ -42,19 +43,21 @@ class SpatialData:
             print(f"Error: Issue creating table\n{e}")
 
 
-    def insert_data(self, name="Default", imp=None, long=None, lat=None, tags=None):
+    def insert_data(self, name="Default", url=None, imp=0, long=None, lat=None, tags=[]):
         c_tag = '{' + ','.join(map(str, tags)) + '}'
         insert = sql.SQL(f"""
-        INSERT INTO locations (name, importance, tags, geom) 
+        INSERT INTO locations (name, url, importance, tags, geom) 
         VALUES (
-            {name}, 
-            {imp}, 
-            '{c_tag}'::text[],
-            ST_SetSRID(ST_MakePoint({long}, {lat}), 4326)
-            );
+            %s, 
+            %s, 
+            %s,
+            %s::text[],
+            ST_SetSRID(ST_MakePoint(%s, %s), 4326)
+            )
+        ON CONFLICT (name) DO NOTHING;
         """)
         try:
-            self.cur.execute(insert)
+            self.cur.execute(insert, (name, url, imp, c_tag, long, lat))
             self.conn.commit()
         except psycopg2.Error as e:
             self.conn.rollback()
