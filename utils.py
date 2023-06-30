@@ -66,9 +66,9 @@ class SpatialData:
         return None
 
 
-    def query_nearest(self, k, long, lat):
+    def nearest_k(self, k, long, lat):
         self.cur.execute(f"""
-            SELECT name, ST_X(geom), ST_Y(geom), ST_Distance(geom::geography, ST_MakePoint({long}, {lat})::geography) AS distance
+            SELECT name, url , ST_X(geom), ST_Y(geom), ST_Distance(geom::geography, ST_MakePoint({long}, {lat})::geography) AS distance
             FROM locations 
             ORDER BY distance
             LIMIT {k};
@@ -79,14 +79,15 @@ class SpatialData:
         return res
 
 
-    def query_rect(self, k, left, bottom, right, top):
+    def rect(self, k, left, bottom, right, top, tags=[]):
+        tags_str = ','.join(f"'{tag}'" for tag in tags)
         self.cur.execute(f"""
             SELECT name, importance, ST_X(geom), ST_Y(geom) 
             FROM locations 
             WHERE ST_Contains(
                 ST_MakeEnvelope({left}, {bottom}, {right}, {top}, 4326),  -- Replace :left, :bottom, :right, :top with the coordinates of your rectangle
                 geom
-            )
+            ) AND {tags_str} = ANY (tags)
             ORDER BY importance DESC
             LIMIT {k};
         """)
@@ -95,7 +96,7 @@ class SpatialData:
             res.append(r)
         return res
     
-    def query_nearest_by_tag(self, k, long, lat, tag=[]):
+    def nearest_by_tag(self, k, long, lat, tag=[]):
         c_tag = '{' + ','.join(map(str, tag)) + '}'
         self.cur.execute(f"""
             SELECT name, ST_X(geom), ST_Y(geom), ST_Distance(geom::geography, ST_MakePoint({long}, {lat})::geography) AS distance
@@ -107,6 +108,29 @@ class SpatialData:
         res = []
         for r in self.cur:
             res.append(r)
+        return res
+
+
+    def update_tags(self, name, new_tags):
+        try:
+            for tag in new_tags:
+                self.cur.execute(f"""
+                    UPDATE locations
+                    SET tags = array_append(tags, %s)
+                    WHERE name = %s AND NOT (%s = ANY(tags));
+                """, (tag, name, tag))
+                self.conn.commit()
+        except psycopg2.Error as e:
+            print(f"Error: Issue updating tags\n{e}")
+            return e
+        return None
+
+
+    def get_names(self):
+        self.cur.execute("SELECT name FROM locations;")
+        res = []
+        for row in self.cur.fetchall():
+            res.append(row)
         return res
 
 

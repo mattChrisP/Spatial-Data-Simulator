@@ -6,11 +6,13 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" 
             integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
             crossorigin=""/>
-
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
             integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
             crossorigin="">
     </script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
@@ -23,13 +25,16 @@
         </div>
     </div>
     <div id="content">
-        <div id="mapid" style="height: 400px; width: 600px;"></div>
+        <div id="mapid"></div>
     </div>
     
 
 
     <script>
         var userMarker;
+
+        var curLat;
+        var curLong;
 
         var modal = document.getElementById("permission-modal");
         var btn = document.getElementById("grant-permission");
@@ -42,12 +47,14 @@
             body.classList.add('modal-open');
         }
 
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition);
-            } else { 
-                x.innerHTML = "Geolocation is not supported by this browser.";
-            }
+        function getLocations() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Geolocation is not supported by this browser.'));
+                } else {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                }
+            });
         }
 
         function showPosition(position) {
@@ -62,25 +69,101 @@
             maxZoom: 19,
         }).addTo(mymap);
 
+        var clusterMarker = L.markerClusterGroup({
+            iconCreateFunction: function(cluster) {
+                return L.divIcon({ html: '<b>' + cluster.getChildCount() + '</b>' });
+            }
+        });
+
         btn.onclick = function() {
             modal.style.display = "none";
             body.classList.remove('modal-open');
-            getLocations();
-        }
 
-        function getLocations() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition);
-            } else { 
-                alert("Geolocation is not supported by this browser.");
+            // Reset the cluster marker
+            if (clusterMarker) {
+                clusterMarker.clearLayers();
             }
+            getLocations().then(position => {
+                curLat = position.coords.latitude;
+                curLong = position.coords.longitude;
+                showCurrentPosition(position);
+                retrieveNearest(10, curLong, curLat);
+            }).catch(error => {
+                console.error(error);
+            });
         }
 
-        function showPosition(position) {
+
+        function retrieveNearest(k=10,long,lat){
+            fetch(`http://127.0.0.1:5000/api/nearest/${k}/${long}/${lat}`)
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                // Store the points to be highlighted
+                console.log(data);
+                for (var i = 0; i < data.length; i++){
+                    showMarker(data[i][3], data[i][2],data[i][1], data[i][0]);
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+            });
+        }
+
+        function showMarker(lat, long, url, name) {
+            // Define the custom icon
+            var localImageUrl = `assets/${name}.jpg`;
+            fetch(localImageUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    var localImageUrl = URL.createObjectURL(blob);
+                    var myIcon = L.divIcon({
+                        className: 'my-div-icon',
+                        html: `<div class="icon-content" style="background-image: url('${localImageUrl}');" title="${name}"></div>`,
+                        iconSize: [60, 60],  // Size of the icon
+                        iconAnchor: [19, 19],  // Point of the icon which will correspond to marker's location
+                    });
+                    // Add code here to add icon to map
+                    var marker = L.marker([lat, long], {icon: myIcon});
+                    clusterMarker.addLayer(marker);
+                    mymap.addLayer(clusterMarker);
+                    mymap.fitBounds(clusterMarker.getBounds());
+                    marker.on('click', function(e) {
+                        mymap.setView(e.target.getLatLng(), 25);
+                    });
+                })
+                .catch(error => {
+                    console.log('Looks like there was a problem: \n', error);
+                    var myIcon = L.divIcon({
+                        className: 'my-div-icon',
+                        html: `<div class="icon-content" style="background-image: url('${url}');" title="${name}"></div>`,
+                        iconSize: [60, 60],  // Size of the icon
+                        iconAnchor: [19, 19],  // Point of the icon which will correspond to marker's location
+                    });
+                    var marker = L.marker([lat, long], {icon: myIcon});
+                    clusterMarker.addLayer(marker);
+                    mymap.addLayer(clusterMarker);
+                    mymap.fitBounds(clusterMarker.getBounds());
+                    marker.on('click', function(e) {
+                        mymap.setView(e.target.getLatLng(), 25);
+                    });
+                });
+
+        }
+
+
+        function showCurrentPosition(position) {
             if (userMarker) {
                 mymap.removeLayer(userMarker);
             }
-
+            curLat = position.coords.latitude;
+            curLong = position.coords.longitude;
             userMarker = L.marker([position.coords.latitude, position.coords.longitude]).addTo(mymap);
 
             mymap.setView([position.coords.latitude, position.coords.longitude], 13);

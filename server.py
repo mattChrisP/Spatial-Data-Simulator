@@ -1,11 +1,16 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from t import (
-    get_k_most_important_points_in_rect, get_k_nearest_points_to_location, preprocess, get_data
+from utils import SpatialData
+
+from constants import (
+    dbname, db_user, db_pass
 )
 
+
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["http://localhost:8000"])
+
+instance = SpatialData(dbname=dbname, db_user=db_user, db_pass=db_pass)
 
 
 @app.route('/')
@@ -15,21 +20,23 @@ def home():
 @app.route('/api/nearest/<k>/<x>/<y>', methods=['GET'])
 def get_nearest(k,x,y):
     # Here you can connect to your database and get the data
-    data = get_k_nearest_points_to_location(int(k),float(x),float(y))
+    data = instance.nearest_k(k=k,long=x,lat=y)
     return jsonify(data)
 
 @app.route('/api/points', methods=['GET'])
 def get_points():
     # Here you can connect to your database and get the data
-    data = get_data()
-    return jsonify(data)
+    # data = get_data()
+    # return jsonify(data)
+    pass
 
 
 @app.route('/api/rect/<k>/<x1>/<y1>/<x2>/<y2>', methods=['GET'])
 def get_rect(k,x1,y1,x2,y2):
     # Here you can connect to your database and get the data
-    data = get_k_most_important_points_in_rect(int(k),float(x1),float(y1),float(x2),float(y2))
-    return jsonify(data)
+    # data = get_k_most_important_points_in_rect(int(k),float(x1),float(y1),float(x2),float(y2))
+    # return jsonify(data)
+    pass
 
 @app.route('/api/data', methods=['POST'])
 def post_data():
@@ -39,5 +46,4 @@ def post_data():
     return 'Success', 200  # return response to your client
 
 if __name__ == "__main__":
-    preprocess()
     app.run(debug=True)

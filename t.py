@@ -1,56 +1,46 @@
-# import csv
+import psycopg2
+import requests
+import shutil
+from psycopg2 import sql
+from rtree import index
 
-# from rtree import index
-# from rtree.index import Rtree
+from constants import (
+    GOOGLE_API_KEY, dbname, db_user, db_pass
+)
+from utils import SpatialData
 
-# rt = None
-# data_points = []
 
-# cnt = 0
 
-# f = open('locations_data.csv', 'r')
+# def find_place(input, api_key):
+#     url = f"https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={input}&inputtype=textquery&fields=photos,formatted_address,name,geometry&key={api_key}"
 
-# for line in f.readlines():
-#     if cnt > 100:
-#         break
-#     reader = line.rstrip("\r\n").split(",")
-#     data_points.append(reader)
-#     cnt += 1
+#     response = requests.get(url)
+#     json = response.json()
 
-# # with open('locations_data.csv', 'r') as f:
-# print(data_points)
+#     return json['candidates'][0]['photos'][0]['photo_reference']
 
-# headers = data_points.pop(0)
 
-# # you can preprocess locations_data.csv datasets here
-# def preprocess():
-#     global rt, data_points
-#     print("Preprocessing...")
+# def get_photo(photo_reference, api_key, max_width=400):
+#     url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth={max_width}&photoreference={photo_reference}&key={api_key}"
 
-#     p = index.Property()
-#     rt = index.Index(properties=p)
+#     response = requests.get(url, stream=True)
+#     if response.status_code == 200:
+#         with open('output.jpg', 'wb') as out_file:
+#             shutil.copyfileobj(response.raw, out_file)
+#         print("Image downloaded to output.jpg")
+#     else:
+#         print("Unable to download image")
 
-#     # Populate R-tree index with bounds of polygons
-#     for i, point in enumerate(data_points):
-#         rt.insert(i, (float(point[1]), float(point[2]), float(point[1]), float(point[2])))
+# # Replace with your actual API Key
+# api_key = GOOGLE_API_KEY
 
-#     print("Finish preprocessing")
+# place_name = "Lim Bo Seng Memorial"
 
-# def get_k_most_important_points_in_rect(k, x1, y1, x2, y2):
-#     global rt, data_points
-#     point_ids = list(rt.intersection((x1, y1, x2, y2)))
-#     points = [data_points[i] for i in point_ids]
-#     return sorted(points, key=lambda x: x[3], reverse=True)[:k]
+# # Step 1: Find Place
+# photo_reference = find_place(place_name, api_key)
 
-# def get_k_nearest_points_to_location(k, x, y):
-#     global rt, data_points
-#     point_ids = list(rt.nearest(coordinates=(x,y), num_results=k))
-#     return [data_points[i] for i in point_ids]
+# # Step 3: Get Photo
+# print(get_photo(photo_reference, api_key))
 
-# def get_data():
-#     global data_points
-#     return data_points
-tags = ["konto", "lodon"]
-
-c_tag = ','.join(map(str, tags))
-print(c_tag)
+instance = SpatialData(db_pass=db_pass,db_user=db_user,dbname=dbname)
+print(instance.get_names()[0][0])
