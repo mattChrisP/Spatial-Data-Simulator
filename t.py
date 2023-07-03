@@ -43,4 +43,9 @@ from utils import SpatialData
 # print(get_photo(photo_reference, api_key))
 
 instance = SpatialData(db_pass=db_pass,db_user=db_user,dbname=dbname)
-print(instance.get_names()[0][0])
+t = instance.get_all_data()
+# print(t)
+
+a = [1,
+    2]
+print(a)

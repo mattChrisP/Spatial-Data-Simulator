@@ -126,11 +126,11 @@ class SpatialData:
         return None
 
 
-    def get_names(self):
-        self.cur.execute("SELECT name FROM locations;")
+    def get_all_data(self):
+        self.cur.execute("SELECT name, url, importance, tags, ST_X(geom), ST_Y(geom) FROM locations;")
         res = []
-        for row in self.cur.fetchall():
-            res.append(row)
+        for r in self.cur:
+            res.append(r)
         return res
 
 
