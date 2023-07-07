@@ -1,11 +1,11 @@
 import psycopg2
-import requests
-import shutil
+
+
 from psycopg2 import sql
 from rtree import index
 
 from constants import (
-    GOOGLE_API_KEY, dbname, db_user, db_pass
+    url
 )
 from utils import SpatialData
 
@@ -42,10 +42,7 @@ from utils import SpatialData
 # # Step 3: Get Photo
 # print(get_photo(photo_reference, api_key))
 
-instance = SpatialData(db_pass=db_pass,db_user=db_user,dbname=dbname)
+instance = SpatialData(url=url)
 t = instance.get_all_data()
-# print(t)
+print(t)
 
-a = [1,
-    2]
-print(a)

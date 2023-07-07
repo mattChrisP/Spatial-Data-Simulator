@@ -3,3 +3,4 @@ flask_cors
 rtree
 psycopg2
 python-dotenv
+firebase-admin

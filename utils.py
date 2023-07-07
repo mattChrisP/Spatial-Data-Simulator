@@ -5,11 +5,16 @@ from rtree import index
 
 class SpatialData:
 
-    def __init__(self, dbname, db_user, db_pass):
+    def __init__(self, url):
         self.cur, self.conn = None, None
         # Connect to your postgres DB
         try:
-            self.conn = psycopg2.connect(f"dbname={dbname} user={db_user} password={db_pass}")
+            self.conn = psycopg2.connect(database=url.path[1:],
+                user=url.username,
+                password=url.password,
+                host=url.hostname,
+                port=url.port
+            )
         except psycopg2.Error as e:
             print(f"Error: Could not make connection to the Postgres database\n{e}")
 

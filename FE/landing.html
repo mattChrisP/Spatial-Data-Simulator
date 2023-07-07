@@ -167,6 +167,7 @@
         function showMarker(lat, long, url, name) {
             // Define the custom icon
             var localImageUrl = `assets/${name}.jpg`;
+            var localImageUrl = "{{url_for('static', filename='img/${name}.jpg')}}";
             fetch(localImageUrl)
                 .then(response => {
                     if (!response.ok) {

@@ -1,0 +1,12 @@
+/__pycache__
+/birds
+/FE
+/google-cloud-sdk
+.env
+db.py
+scrape_img.py
+scrape.py
+seed.py
+setup.py
+t.py
+spatial-data-firebase.json
