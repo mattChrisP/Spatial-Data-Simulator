@@ -119,4 +119,4 @@ def post_data():
     return 'Success', 200  # return response to your client
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=80)
