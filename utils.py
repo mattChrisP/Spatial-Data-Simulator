@@ -139,6 +139,19 @@ class SpatialData:
         return res
 
 
+    def update_url(self, name, new_url):
+        try:
+            self.cur.execute(f"""
+                UPDATE locations
+                SET url = %s
+                WHERE name = %s;
+            """, (new_url, name))
+            self.conn.commit()
+        except psycopg2.Error as e:
+            print(f"Error: Issue updating URL\n{e}")
+            return e
+        return None
+
 
     def close_connection(self):  # Add this new method
         try:

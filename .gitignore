@@ -5,3 +5,5 @@ spatial-data-firebase.json
 **/google-cloud-sdk
 scrape.py
 scrape_img.py
+port_script.py
+profiling.py
