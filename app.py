@@ -87,7 +87,8 @@ def upload_file():
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    base_url = request.host_url
+    return render_template('index.html', base_url = base_url)
 
 @app.route('/api/nearest/<k>/<x>/<y>', methods=['GET'])
 def get_nearest(k,x,y):

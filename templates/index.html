@@ -65,7 +65,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form action="http://127.0.0.1:5000/upload" method="post" enctype="multipart/form-data">
+                <form action="{{base_url}}/upload" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="img">Select image:</label>
                     <input type="file" class="form-control" id="img" name="img" accept="image/*">
@@ -91,6 +91,7 @@
 
 
     <script>
+        var base_url = "{{base_url}}";
         var userMarker;
 
         var curLat;
@@ -147,7 +148,7 @@
 
 
         function retrieveNearest(k=10,long,lat){
-            fetch(`http://127.0.0.1:5000/api/nearest/${k}/${long}/${lat}`)
+            fetch(base_url + `/api/nearest/${k}/${long}/${lat}`)
             .then(function(response) {
                 return response.json();
             })
