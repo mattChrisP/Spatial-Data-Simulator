@@ -1,11 +1,13 @@
 import os
+import base64
+import json
 from flask import Flask, jsonify, request, abort, render_template
 
 from utils import SpatialData
 from werkzeug.utils import secure_filename
 
-from firebase_admin import credentials, firestore, initialize_app, storage
-from constants import url
+from firebase_admin import initialize_app, storage, credentials
+from constants import url, ENCODED_JSON
 
 
 
@@ -13,8 +15,17 @@ app = Flask(__name__)
 
 instance = SpatialData(url=url)
 
+encoded_cred = ENCODED_JSON
+
+# Decode base64 string back to JSON string
+json_credentials = base64.b64decode(encoded_cred).decode('utf-8')
+
+
+# Convert JSON string to Python dictionary
+dict_credentials = json.loads(json_credentials)
+
 # Initialize Firestore DB
-cred = credentials.Certificate("spatial-data-firebase.json")
+cred = credentials.Certificate(dict_credentials)
 default_app = initialize_app(cred, {
     'storageBucket': 'spatial-data-f99f2.appspot.com', # replace with your Firebase Storage bucket
 })
