@@ -21,14 +21,16 @@
 </head>
 <body>
 
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
-        Open Form
-    </button>
-    
-    
-    <button id="show-fav" type="button" class="btn btn-primary" data-toggle="modal" data-target="#permission-modal">
-        Show Favourite Locations
-    </button>
+    <div class="button-container">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal" id="show-btn">
+            Open Form
+        </button>
+        
+        
+        <button id="show-btn" type="button" class="btn btn-primary">
+            Show Favourite Locations
+        </button>
+    </div>
     <div class="modal fade" id="permission-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -49,7 +51,7 @@
             </div>
         </div>
     </div>
-    <div id="content">
+    <div class="map-wrapper">
         <div id="mapid"></div>
     </div>
 
@@ -57,35 +59,35 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="uploadModalLabel">Upload Form</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
+                <h5 class="modal-title" id="uploadModalLabel">Upload Location Information</h5>
             </div>
             <div class="modal-body">
                 <form action="{{base_url}}/upload" method="post" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="img">Select image:</label>
-                    <input type="file" class="form-control" id="img" name="img" accept="image/*">
-                </div>
-                <div class="form-group">
-                    <label for="location_name">Location Name:</label>
-                    <input type="text" class="form-control" id="location_name" name="location_name">
-                </div>
-                <div class="form-group">
-                    <label for="tags">Tags:</label>
-                    <input type="text" class="form-control" id="tags" name="tags">
-                </div>
-                <input type="hidden" id="longitude" name="longitude" value=""><br><br>
-                <input type="hidden" id="latitude" name="latitude" value=""><br><br>
 
-                <button type="submit" class="btn btn-primary">Submit</button>
+                    <div class="form-group">
+                        <label for="img">Select image</label>
+                        <input type="file" class="form-control" id="img" name="img" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label for="location_name">Location Name</label>
+                        <input type="text" class="form-control" id="location_name" name="location_name" placeholder="Enter location name">
+                    </div>
+                    <div class="form-group tags">
+                        <select id="tags" name="tags">
+                            <option value="" selected disabled>Select your tags</option>
+                            <option value="Food">Food</option>
+                            <option value="Tourism">Tourism</option>
+                            <option value="Personal">Personal</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="longitude" name="longitude" value=""><br><br>
+                    <input type="hidden" id="latitude" name="latitude" value=""><br><br>
+                    <button type="submit">Submit</button>
                 </form>
             </div>
             </div>
         </div>
     </div>
-    
 
 
     <script>
@@ -98,6 +100,11 @@
         var btn = document.getElementById("grant-permission");
         var x = document.getElementById("demo");
         var showFavButton = document.getElementById("show-fav");
+
+
+        window.onload = function() {
+            $('#permission-modal').modal('show');
+        };
 
 
         function getLocations() {
@@ -115,7 +122,7 @@
             "<br>Longitude: " + position.coords.longitude;
         }
 
-        var mymap = L.map('mapid').setView([51.505, -0.09], 13);
+        var mymap = L.map('mapid').setView([1.3521, 103.8198], 13);
     
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
@@ -138,7 +145,6 @@
                 curLat = position.coords.latitude;
                 curLong = position.coords.longitude;
                 showCurrentPosition(position);
-                retrieveNearest(10, curLong, curLat);
             }).catch(error => {
                 console.error(error);
             });

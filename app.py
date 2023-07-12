@@ -72,13 +72,12 @@ def upload_file():
     else:
         abort(400, description="File type not allowed")
 
-    
-    
 
     tags = request.form.get('tags', '')
-    t_list = tags.split(",")
+    t_list = [tags]
     long = request.form.get('longitude', '')
     lat = request.form.get('latitude', '')
+    print(tags, "this is tags")
 
     instance.insert_data(name=text,long=long,lat=lat,tags=t_list,url=file_url)
     return 'file uploaded successfully'
