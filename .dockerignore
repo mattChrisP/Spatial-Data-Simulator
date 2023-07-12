@@ -1,7 +1,4 @@
 /__pycache__
-/birds
-/FE
-/google-cloud-sdk
 .env
 db.py
 scrape_img.py
