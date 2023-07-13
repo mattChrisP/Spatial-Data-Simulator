@@ -27,7 +27,7 @@
         </button>
         
         
-        <button id="show-btn" type="button" class="btn btn-primary">
+        <button id="fav-btn" type="button" class="btn btn-primary">
             Show Favourite Locations
         </button>
     </div>
@@ -36,15 +36,12 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">We need your permission</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                 </div>
                 <div class="modal-body">
                     <p>To provide the best experience, we need access to your location.</p>
                 </div>
-                <div class="modal-footer">
-                    <button id="grant-permission" type="button" class="btn btn-primary" data-dismiss="modal">
+                <div class="text-center">
+                    <button id="grant-permission" type="button" data-dismiss="modal">
                         Allow Location Access
                     </button>
                 </div>
@@ -98,6 +95,7 @@
         var curLong;
 
         var btn = document.getElementById("grant-permission");
+        var fav_btn = document.getElementById("fav-btn")
         var x = document.getElementById("demo");
         var showFavButton = document.getElementById("show-fav");
 
@@ -135,6 +133,20 @@
             }
         });
 
+        fav_btn.onclick = function() {
+            if (clusterMarker) {
+                clusterMarker.clearLayers();
+            }
+            getLocations().then(position => {
+                curLat = position.coords.latitude;
+                curLong = position.coords.longitude;
+                showCurrentPosition(position);
+                retrieveNearest(10, curLong, curLat);
+            }).catch(error => {
+                console.error(error);
+            });
+        }
+
         btn.onclick = function() {
 
             // Reset the cluster marker
@@ -170,49 +182,19 @@
 
         function showMarker(lat, long, url, name) {
             // Define the custom icon
-            var localImageUrl = `../static/img/${name}.jpg`;
-            // var localImageUrl = url_for('static', filename='img/${name}.jpg');
-            fetch(localImageUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.blob();
-                })
-                .then(blob => {
-                    var localImageUrl = URL.createObjectURL(blob);
-                    var myIcon = L.divIcon({
-                        className: 'my-div-icon',
-                        html: `<div class="icon-content" style="background-image: url('${localImageUrl}');" title="${name}"></div>`,
-                        iconSize: [60, 60],  // Size of the icon
-                        iconAnchor: [19, 19],  // Point of the icon which will correspond to marker's location
-                    });
-                    // Add code here to add icon to map
-                    var marker = L.marker([lat, long], {icon: myIcon});
-                    clusterMarker.addLayer(marker);
-                    mymap.addLayer(clusterMarker);
-                    mymap.fitBounds(clusterMarker.getBounds());
-                    marker.on('click', function(e) {
-                        mymap.setView(e.target.getLatLng(), 25);
-                    });
-                })
-                .catch(error => {
-                    console.log('Looks like there was a problem: \n', error);
-                    var myIcon = L.divIcon({
-                        className: 'my-div-icon',
-                        html: `<div class="icon-content" style="background-image: url('${url}');" title="${name}"></div>`,
-                        iconSize: [60, 60],  // Size of the icon
-                        iconAnchor: [19, 19],  // Point of the icon which will correspond to marker's location
-                    });
-                    var marker = L.marker([lat, long], {icon: myIcon});
-                    clusterMarker.addLayer(marker);
-                    mymap.addLayer(clusterMarker);
-                    mymap.fitBounds(clusterMarker.getBounds());
-                    marker.on('click', function(e) {
-                        mymap.setView(e.target.getLatLng(), 25);
-                    });
-                });
-
+            var myIcon = L.divIcon({
+                className: 'my-div-icon',
+                html: `<div class="icon-content" style="background-image: url('${url}');"></div><span class="icon-label">${name}</span>`,
+                iconSize: [60, 60],  // Size of the icon
+                iconAnchor: [19, 60],  // Point of the icon which will correspond to marker's location
+            });
+            var marker = L.marker([lat, long], {icon: myIcon});
+            clusterMarker.addLayer(marker);
+            mymap.addLayer(clusterMarker);
+            mymap.fitBounds(clusterMarker.getBounds());
+            marker.on('click', function(e) {
+                mymap.setView(e.target.getLatLng(), 25);
+            });
         }
 
 
