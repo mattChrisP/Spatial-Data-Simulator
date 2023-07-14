@@ -59,7 +59,7 @@ body.modal-open #content{
     background: #1e90ff;
     color: white;
     text-align: center;
-    line-height: 10px;
+    line-height: 15px;
     box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.2);
 }
 
@@ -143,39 +143,39 @@ html, body {
 /*Upload loc CSS*/
 
 form .form-group {
-margin-bottom: 15px;
-position: relative;
+    margin-bottom: 15px;
+    position: relative;
 }
 form label {
-display: block;
-font-size: 15px;
-margin-bottom: 7px;
+    display: block;
+    font-size: 15px;
+    margin-bottom: 7px;
 }
 form input,
 form select {
-height: 45px;
-padding: 10px;
-width: 100%;
-font-size: 15px;
-outline: none;
-background: #fff;
-border-radius: 3px;
-border: 1px solid #bfbfbf;
+    height: 45px;
+    padding: 10px;
+    width: 100%;
+    font-size: 15px;
+    outline: none;
+    background: #fff;
+    border-radius: 3px;
+    border: 1px solid #bfbfbf;
 }
 form input:focus,
 form select:focus {
-border-color: #9a9a9a;
+    border-color: #9a9a9a;
 }
 form input.error,
 form select.error {
-border-color: #f91919;
-background: #f9f0f1;
+    border-color: #f91919;
+    background: #f9f0f1;
 }
 form small {
-font-size: 14px;
-margin-top: 5px;
-display: block;
-color: #f91919;
+    font-size: 14px;
+    margin-top: 5px;
+    display: block;
+    color: #f91919;
 }
 
 .icon-label {
@@ -183,7 +183,7 @@ color: #f91919;
     width: 100%;
     text-align: center;
     top: -20px;  
-    font-size: 10px; 
+    font-size: 15px; 
     color: black;  
     font-weight: bold;
     left: 50%;
