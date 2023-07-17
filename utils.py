@@ -104,7 +104,7 @@ class SpatialData:
     def nearest_by_tag(self, k, long, lat, tag=[]):
         c_tag = '{' + ','.join(map(str, tag)) + '}'
         self.cur.execute(f"""
-            SELECT name, ST_X(geom), ST_Y(geom), ST_Distance(geom::geography, ST_MakePoint({long}, {lat})::geography) AS distance
+            SELECT name, url, ST_X(geom), ST_Y(geom), ST_Distance(geom::geography, ST_MakePoint({long}, {lat})::geography) AS distance
             FROM locations 
             WHERE tags @> '{c_tag}'::text[]
             ORDER BY distance
@@ -149,6 +149,22 @@ class SpatialData:
             self.conn.commit()
         except psycopg2.Error as e:
             print(f"Error: Issue updating URL\n{e}")
+            return e
+        return None
+
+
+    def update_empty_tags(self, new_tags=['Tourism']):
+        try:
+            c_tag = '{' + ','.join(map(str, new_tags)) + '}'
+            self.cur.execute("""
+                UPDATE locations
+                SET tags = %s::text[]
+                WHERE tags IS NULL OR tags = '{}';
+            """, (c_tag,))
+            self.conn.commit()
+            print(f"Success Updating tags")
+        except psycopg2.Error as e:
+            print(f"Error: Issue updating empty tags\n{e}")
             return e
         return None
 

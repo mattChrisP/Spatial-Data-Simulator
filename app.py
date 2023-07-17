@@ -88,11 +88,16 @@ def home():
     base_url = request.host_url
     return render_template('index.html', base_url = base_url)
 
-@app.route('/api/nearest/<k>/<x>/<y>', methods=['GET'])
-def get_nearest(k,x,y):
+@app.route('/api/nearest/<k>/<x>/<y>/<tags>', methods=['GET'])
+def get_nearest(k,x,y, tags):
+    t = []
+    if tags != "None":
+        t.append(tags)
     # Here you can connect to your database and get the data
-    data = instance.nearest_k(k=k,long=x,lat=y)
+    data = instance.nearest_by_tag(k=k,long=x,lat=y, tag=t)
     return jsonify(data)
+
+
 
 
 if __name__ == "__main__":
